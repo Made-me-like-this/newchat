@@ -1,0 +1,3 @@
+djangorestframework
+django
+python3.12
