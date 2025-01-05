@@ -1,3 +1,2 @@
 djangorestframework
 django
-python
