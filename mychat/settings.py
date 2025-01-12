@@ -99,7 +99,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage' 
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
-    'https://matches-separation-climbing-sq.trycloudflare.com',
+    'https://talktome-lybb.onrender.com/',
 ]
 
 # Default Primary Key Field Type
