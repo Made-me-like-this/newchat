@@ -1,0 +1,126 @@
+{% extends 'chat/base.html' %}
+{% load static %}
+
+{% block title %}New Chat - ChatUp{% endblock %}
+
+{% block content %}
+<style>
+    .create-chat-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .users-list {
+        margin-top: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 1rem;
+    }
+
+    .user-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .user-item:hover {
+        background-color: #f7fafc;
+    }
+
+    .user-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        margin-right: 1rem;
+        object-fit: cover;
+        border: 2px solid #e2e8f0;
+    }
+
+    .user-info {
+        flex: 1;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .start-chat-btn {
+        background-color: #6b46c1;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .start-chat-btn:hover {
+        background-color: #553c9a;
+    }
+
+    .search-box {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="create-chat-container">
+    <h2 class="text-2xl font-bold mb-4">Start New Chat</h2>
+    
+    <input type="text" 
+           class="search-box" 
+           id="userSearch" 
+           placeholder="Search users..."
+           onkeyup="filterUsers()">
+
+    <div class="users-list">
+        {% for user in available_users %}
+            <div class="user-item" data-username="{{ user.username|lower }}">
+                <img src="{{ user.avatar.url|default:'/static/images/default-avatar.png' }}" 
+                     alt="{{ user.username }}" 
+                     class="user-avatar">
+                <div class="user-info">
+                    <div class="user-name">{{ user.username }}</div>
+                    <div class="text-sm text-gray-500">{{ user.email }}</div>
+                </div>
+                <form method="post" action="{% url 'chat:create_chat' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="participants" value="{{ user.id }}">
+                    <button type="submit" class="start-chat-btn">
+                        <i class="fas fa-comment-dots"></i>
+                        Chat
+                    </button>
+                </form>
+            </div>
+        {% empty %}
+            <p class="text-center text-gray-500">No users available</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function filterUsers() {
+    const searchInput = document.getElementById('userSearch').value.toLowerCase();
+    const userItems = document.querySelectorAll('.user-item');
+    
+    userItems.forEach(item => {
+        const username = item.dataset.username;
+        if (username.includes(searchInput)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

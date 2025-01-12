@@ -1,0 +1,71 @@
+{% extends 'auth/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Left Side - Chat List -->
+    <div class="chat-list">
+        <div class="chat-header">
+            <h1>ChatUp</h1>
+            <button class="search-btn">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+        
+        <div class="conversations">
+            {% for chat in chats %}
+            <div class="chat-item {% if chat.unread %}unread{% endif %}">
+                <img src="{{ chat.user.avatar.url }}" alt="{{ chat.user.name }}" class="avatar">
+                <div class="chat-info">
+                    <div class="chat-top">
+                        <h3>{{ chat.user.name }}</h3>
+                        <span class="time">{{ chat.last_message.timestamp }}</span>
+                    </div>
+                    <p class="last-message">{{ chat.last_message.content }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="bottom-nav">
+            <button class="nav-btn"><i class="fas fa-comments"></i></button>
+            <button class="nav-btn"><i class="fas fa-users"></i></button>
+            <button class="nav-btn add-btn"><i class="fas fa-plus"></i></button>
+            <button class="nav-btn"><i class="fas fa-bell"></i></button>
+            <button class="nav-btn"><i class="fas fa-cog"></i></button>
+        </div>
+    </div>
+
+    <!-- Right Side - Chat Messages -->
+    <div class="chat-messages">
+        <div class="chat-messages-header">
+            <button class="back-btn"><i class="fas fa-arrow-left"></i></button>
+            <div class="current-chat-info">
+                <img src="{{ active_chat.user.avatar.url }}" alt="{{ active_chat.user.name }}" class="avatar">
+                <h2>{{ active_chat.user.name }}</h2>
+            </div>
+            <button class="search-btn"><i class="fas fa-search"></i></button>
+        </div>
+
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="message {% if message.is_self %}message-self{% endif %}">
+                {% if not message.is_self %}
+                <img src="{{ message.user.avatar.url }}" alt="" class="avatar">
+                {% endif %}
+                <div class="message-content">
+                    <p>{{ message.content }}</p>
+                    <span class="message-time">{{ message.timestamp }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="message-input">
+            <button class="emoji-btn"><i class="far fa-smile"></i></button>
+            <input type="text" placeholder="Type a message" id="messageInput">
+            <button class="send-btn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+{% endblock %}

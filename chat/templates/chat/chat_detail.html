@@ -1,0 +1,73 @@
+{% extends 'chat/base.html' %}
+{% load static %}
+
+{% block title %}Chat with {{ chat.other_user.username }} - ChatUp{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-list-sidebar">
+        {% include 'chat/chat_list_partial.html' with active_chat=chat.id %}
+    </div>
+
+    <div class="chat-detail" data-chat-id="{{ chat.id }}" data-user-id="{{ request.user.id }}">
+        <div class="chat-header">
+            <div class="user-info">
+                <img src="{{ chat.other_user.avatar.url|default:'/static/images/default-avatar.png' }}" 
+                     alt="{{ chat.other_user.username }}"
+                     class="avatar-img">
+                <div class="user-details">
+                    <h2>{{ chat.other_user.username }}</h2>
+                    <span class="user-status">
+                        {% if chat.other_user.is_online %}Online{% else %}Offline{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            {% for message in messages %}
+            <div class="message {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %}">
+                <div class="message-content">
+                    {{ message.content }}
+                </div>
+                <div class="message-meta">
+                    <span class="message-time">{{ message.timestamp|date:"g:i A" }}</span>
+                    {% if message.sender == request.user %}
+                        <span class="message-status">
+                            {% if message.is_read %}
+                            <i class="fas fa-check-double"></i>
+                            {% else %}
+                            <i class="fas fa-check"></i>
+                            {% endif %}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="chat-input">
+            <form id="chat-form" method="post">
+                {% csrf_token %}
+                <div class="input-wrapper">
+                    <button type="button" class="emoji-button">
+                        <i class="far fa-smile"></i>
+                    </button>
+                    <input type="text" 
+                           name="message" 
+                           placeholder="Type a message..." 
+                           required 
+                           autocomplete="off">
+                    <button type="submit" class="send-button">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chat.js' %}"></script>
+{% endblock %}

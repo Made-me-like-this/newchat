@@ -1,0 +1,73 @@
+{% extends 'chat/base.html' %}
+{% load static %}
+
+{% block title %}Chats - ChatUp{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/chat.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-list-sidebar">
+        <div class="chat-list-header">
+            <div class="flex justify-between items-center">
+                <h2>Your Chats</h2>
+                <div class="flex gap-2">
+                    <a href="{% url 'chat:profile' %}" class="profile-button">
+                        <i class="fas fa-user"></i>
+                    </a>
+                    <a href="{% url 'chat:create_chat' %}" class="new-chat-button">
+                        <i class="fas fa-plus"></i>
+                        New Chat
+                    </a>
+                </div>
+            </div>
+            <div class="search-container">
+                <input type="text" id="chatSearch" placeholder="Search chats..." class="chat-search">
+            </div>
+        </div>
+
+        <div class="chat-list">
+            {% for chat in chats %}
+            <a href="{% url 'chat:chat_detail' chat.id %}" class="chat-list-item {% if chat.id == active_chat %}active{% endif %}">
+                <div class="chat-avatar">
+                    <img src="{{ chat.other_user.avatar.url|default:'/static/images/default-avatar.jpg' }}"
+                         alt="{{ chat.other_user.username }}" class="avatar-img">
+                </div>
+                <div class="chat-preview">
+                    <div class="chat-preview-header">
+                        <h3 class="chat-name">{{ chat.other_user.username }}</h3>
+                        {% if chat.latest_message %}
+                            <span class="chat-time">{{ chat.latest_message.timestamp|timesince }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="chat-last-message">
+                        {% if chat.latest_message %}
+                            {{ chat.latest_message.content|truncatechars:30 }}
+                        {% else %}
+                            Start a conversation!
+                        {% endif %}
+                    </p>
+                </div>
+            </a>
+            {% empty %}
+            <div class="no-chats-message">
+                <p>No chats yet. Start a conversation!</p>
+                <a href="{% url 'chat:create_chat' %}" class="start-chat-btn">Start New Chat</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if not active_chat %}
+    <div class="chat-placeholder">
+        <div class="placeholder-content">
+            <i class="fas fa-comments"></i>
+            <h2>Select a chat to start messaging</h2>
+            <p>Choose from your existing conversations or start a new one</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

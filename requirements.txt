@@ -1,0 +1,5 @@
+channels
+django
+djangorestframework
+django
+gunicorn

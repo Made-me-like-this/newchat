@@ -1,0 +1,94 @@
+# chat.js
+
+const chatSocket = new WebSocket(
+    'ws://' + window.location.host + '/ws/chat/'
+);
+
+chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const messages = document.getElementById('chat-messages');
+
+    const newMessage = document.createElement('div');
+    newMessage.classList.add('chat-message');
+    newMessage.innerHTML = `<span class="username">${data.username}</span>: <span class="message">${data.message}</span>`;
+
+    messages.appendChild(newMessage);
+    messages.scrollTop = messages.scrollHeight;
+};
+
+chatSocket.onclose = function(e) {
+    console.error('Chat socket closed unexpectedly');
+};
+
+document.querySelector('#chat-message-input').focus();
+
+document.querySelector('#chat-message-input').onkeyup = function(e) {
+    if (e.keyCode === 13) {
+        document.querySelector('#chat-message-submit').click();
+    }
+};
+
+document.querySelector('#chat-message-submit').onclick = function(e) {
+    const messageInputDom = document.querySelector('#chat-message-input');
+    const message = messageInputDom.value;
+
+    chatSocket.send(JSON.stringify({
+        'message': message
+    }));
+
+    messageInputDom.value = '';
+};
+
+// chat/views.py
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import ChatMessage
+from .forms import MessageForm
+
+def chat_list(request):
+    return render(request, 'chat/chat_list.html')
+
+@login_required
+def chat_area(request):
+    form = MessageForm()
+    messages = ChatMessage.objects.all()
+    return render(request, 'chat/chat_area.html', {
+        'form': form,
+        'messages': messages
+    })
+
+# chat/urls.py
+
+from django.urls import path
+from . import views
+
+app_name = 'chat'
+
+urlpatterns = [
+    path('', views.chat_list, name='chat_list'),
+    path('room/', views.chat_area, name='chat_area'),
+]
+
+# chat/forms.py
+
+from django import forms
+from .models import ChatMessage
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = ChatMessage
+        fields = ['content']
+
+# chat/models.py
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class ChatMessage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username}: {self.content[:20]}"
