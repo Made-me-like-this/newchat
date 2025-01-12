@@ -7,7 +7,7 @@ SECRET_KEY = 'django-insecure-&pbls0s4p&q#h1z&9_ww4p*+l-pn)@7hzbq)4+(n(f6^d@$-h&
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['talktome-lybb.onrender.com/']
+ALLOWED_HOSTS = ['talktome-lybb.onrender.com']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
