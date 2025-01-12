@@ -2,3 +2,4 @@ channels
 django
 djangorestframework
 gunicorn
+whitenoise
