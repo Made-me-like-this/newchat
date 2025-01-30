@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Home - Chat Rooms{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+    <!-- Sidebar - Active Users -->
+    <div class="lg:col-span-1 bg-white rounded-lg shadow-md p-4 h-fit">
+        <h2 class="text-xl font-bold mb-4 text-purple-600">
+            <i class="fas fa-users"></i> Active Users
+        </h2>
+        <div class="space-y-2 max-h-96 overflow-y-auto">
+            {% for profile in active_users %}
+            <div class="flex items-center space-x-2 p-2 hover:bg-purple-50 rounded">
+                <div class="relative">
+                    <img src="{{ profile.avatar.url }}" alt="{{ profile.user.username }}"
+                         class="w-8 h-8 rounded-full object-cover">
+                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+                </div>
+                <span class="text-sm">{{ profile.user.username }}</span>
+            </div>
+            {% empty %}
+            <p class="text-gray-500 text-sm">No active users</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Main Content - Chat Rooms -->
+    <div class="lg:col-span-3 space-y-4">
+        <!-- Create Room Button -->
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold text-purple-600">Chat Rooms</h1>
+            <a href="{% url 'create_room' %}" class="btn-primary">
+                <i class="fas fa-plus"></i> Create Room
+            </a>
+        </div>
+
+        <!-- Room Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for room in rooms %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <div class="p-4">
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-lg font-semibold text-purple-600">
+                            <i class="fas fa-door-open"></i> {{ room.name }}
+                        </h3>
+                        {% if room.is_private %}
+                        <span class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">
+                            <i class="fas fa-lock"></i> Private
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">
+                        <i class="fas fa-user"></i> Created by {{ room.created_by.username }}
+                    </p>
+                    <p class="text-sm text-gray-500">
+                        <i class="fas fa-clock"></i> {{ room.created_at|timesince }} ago
+                    </p>
+                    <div class="mt-4">
+                        <a href="{% url 'room_detail' room.id %}" class="btn-primary block text-center">
+                            <i class="fas fa-sign-in-alt"></i> Join Room
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-8">
+                <p class="text-gray-500">No chat rooms available</p>
+                <a href="{% url 'create_room' %}" class="btn-primary inline-block mt-4">
+                    <i class="fas fa-plus"></i> Create Your First Room
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
