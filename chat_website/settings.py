@@ -12,7 +12,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-f7)*3$qv4qp3tn#ae^h
 
 DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'talktome-lybb.onrender.com', localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'talktome-lybb.onrender.com', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
