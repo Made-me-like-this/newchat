@@ -4,9 +4,10 @@ channels-redis
 daphne
 whitenoise
 redis
+django
 djangorestframework
 djangorestframework-simplejwt
-crispy-forms
+django-crispy-forms
 crispy-tailwind
 django-cleanup
 
