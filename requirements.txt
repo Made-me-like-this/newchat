@@ -3,7 +3,7 @@ channels
 channels-redis
 daphne
 whitenoise
-redis-server
+redis
 djangorestframework
 djangorestframework-simplejwt
 crispy-forms
