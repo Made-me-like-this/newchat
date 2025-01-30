@@ -1,0 +1,12 @@
+gunicorn
+channels
+channels-redis
+daphne
+whitenoise
+redis-server
+djangorestframework
+djangorestframework-simplejwt
+crispy-forms
+crispy-tailwind
+django-cleanup
+
