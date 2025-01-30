@@ -109,7 +109,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('talktome-lybb.onrender.com', 6379)],
+            "hosts": [('redis://red-cudnvhqj1k6c73cqu8mg', 6379)],
         },
     },
 }
