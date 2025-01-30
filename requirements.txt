@@ -10,4 +10,4 @@ djangorestframework-simplejwt
 django-crispy-forms
 crispy-tailwind
 django-cleanup
-
+python-dotenv
