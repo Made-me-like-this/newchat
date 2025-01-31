@@ -109,7 +109,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [f'redis://{os.getenv("REDIS_HOST")}:{os.getenv("REDIS_PORT")}'],
+            "hosts": ['redis://default:DGUjZrzLHXrXBZDfJPWYxKjPiisAHoGe@viaduct.proxy.rlwy.net:55480'],
         },
     },
 }
