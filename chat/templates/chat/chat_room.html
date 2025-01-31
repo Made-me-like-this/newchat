@@ -1,0 +1,630 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="flex h-screen bg-gray-100">
+    <!-- Main chat area -->
+    <div class="flex-1 flex flex-col">
+        <!-- Room Header -->
+        <div class="bg-white border-b p-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-xl font-bold">
+                        <i class="fas fa-door-open"></i> {{ room.name }}
+                    </h1>
+                    {% if room.is_private %}
+                    <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
+                        Private Room
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <!-- Room actions dropdown -->
+<div class="relative" x-data="{ open: false }">
+    <button @click="open = !open" class="text-gray-500 hover:text-gray-700">
+        <i class="fas fa-ellipsis-v"></i>
+    </button>
+    <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
+        <div class="py-1">
+            {% if room.created_by == request.user %}
+                <a href="{% url 'room_settings' room.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <i class="fas fa-cog"></i> Room Settings
+                </a>
+                <a href="{% url 'invite_users' room.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <i class="fas fa-user-plus"></i> Invite Users
+                </a>
+            {% endif %}
+            <a href="#" onclick="togglePinnedMessages()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <i class="fas fa-thumbtack"></i> Pinned Messages
+            </a>
+            <a href="#" onclick="toggleParticipants()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <i class="fas fa-users"></i> Participants
+            </a>
+            {% if room.created_by == request.user %}
+                <a href="{% url 'delete_room' room.id %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                    <i class="fas fa-trash"></i> Delete Room
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+
+                    <!-- Call buttons -->
+                    {% if room.allow_voice_calls %}
+                    <button onclick="startVoiceCall()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    {% endif %}
+
+                    {% if room.allow_video_calls %}
+                    <button onclick="startVideoCall()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-video"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages area -->
+        <div id="messageContainer" class="flex-1 overflow-y-auto p-4 space-y-4" data-room-id="{{ room.id }}">
+            {% for message in messages %}
+            <div class="message-wrapper" id="message-{{ message.id }}">
+                <div class="flex items-start {% if message.user == request.user %}justify-end{% endif %}">
+                    {% if message.user != request.user %}
+                    <img src="{{ message.user.profile.avatar.url }}" alt="{{ message.user.username }}"
+                         class="w-8 h-8 rounded-full mr-2">
+                    {% endif %}
+
+                    <div class="message {% if message.user == request.user %}own{% else %}other{% endif %}
+                                max-w-[70%] rounded-lg p-3 relative group">
+                        <!-- Username and timestamp -->
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-medium">{{ message.user.username }}</span>
+                            <span class="text-xs text-gray-500">{{ message.timestamp|time:"g:i A" }}</span>
+                        </div>
+
+                        <!-- Message content -->
+                        {% if message.message_type == 'text' %}
+                            <div class="message-content break-words">{{ message.content }}</div>
+                        {% elif message.message_type == 'file' %}
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-file"></i>
+                                <a href="{{ message.file.url }}" class="text-blue-500 hover:underline" target="_blank">
+                                    {{ message.file_name }}
+                                </a>
+                            </div>
+                        {% elif message.message_type == 'code' %}
+                            <pre class="bg-gray-800 text-white p-3 rounded"><code class="language-{{ message.code_language }}">{{ message.content }}</code></pre>
+                        {% endif %}
+
+                        <!-- Message actions -->
+                        <div class="absolute top-0 right-0 hidden group-hover:flex items-center space-x-2 p-1">
+                            <!-- Reply button -->
+                            <button onclick="replyToMessage('{{ message.id }}')" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-reply"></i>
+                            </button>
+
+                            <!-- Reactions button -->
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="text-gray-500 hover:text-gray-700">
+                                    <i class="fas fa-smile"></i>
+                                </button>
+                                <div x-show="open" @click.away="open = false"
+                                     class="absolute bottom-full right-0 bg-white rounded-lg shadow-lg p-2 flex space-x-1">
+                                    {% for reaction_type, emoji in message.REACTION_CHOICES %}
+                                    <button onclick="addReaction('{{ message.id }}', '{{ reaction_type }}')"
+                                            class="hover:bg-gray-100 p-1 rounded">
+                                        {{ emoji }}
+                                    </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- More actions -->
+                            {% if message.user == request.user %}
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="text-gray-500 hover:text-gray-700">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div x-show="open" @click.away="open = false"
+                                     class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg">
+                                    <div class="py-1">
+                                        <a href="#" onclick="editMessage('{{ message.id }}')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <a href="#" onclick="deleteMessage('{{ message.id }}')" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Reactions display -->
+                        {% if message.reactions.exists %}
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            {% for reaction in message.reactions.all %}
+                            <span class="bg-gray-100 text-sm px-2 py-1 rounded-full">
+                                {{ reaction.get_reaction_type_display }} {{ reaction.user.username }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Reply thread -->
+                        {% if message.replies.exists %}
+                        <div class="mt-2 pl-4 border-l-2 border-gray-200">
+                            {% for reply in message.replies.all %}
+                            <div class="text-sm text-gray-600 mt-1">
+                                <span class="font-medium">{{ reply.user.username }}:</span> {{ reply.content }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Message input area -->
+        <div class="bg-white border-t p-4">
+            <!-- Reply preview -->
+            <div id="typingIndicator" class="text-sm text-gray-500 italic hidden"></div>
+            <div id="replyPreview" class="hidden mb-2 p-2 bg-gray-50 rounded-lg">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-600">Replying to <span id="replyingTo"></span></span>
+                    <button onclick="cancelReply()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Message form -->
+            <form id="messageForm" class="flex items-end space-x-2">
+                <div class="flex-grow">
+                    <div class="relative">
+                        <textarea id="messageInput" rows="1"
+                                class="w-full resize-none form-input rounded-lg pr-10"
+                                placeholder="Type your message..."
+                                onInput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"></textarea>
+
+                        <!-- Format buttons -->
+                        <div class="absolute bottom-2 right-2 flex space-x-2">
+                            <button type="button" onclick="toggleBold()" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-bold"></i>
+                            </button>
+                            <button type="button" onclick="toggleItalic()" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-italic"></i>
+                            </button>
+                            <button type="button" onclick="toggleCode()" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-code"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="flex space-x-2">
+                    {% if room.allow_file_sharing %}
+                    <label class="cursor-pointer text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-paperclip"></i>
+                        <input type="file" class="hidden" onchange="handleFileUpload(this)">
+                    </label>
+                    {% endif %}
+
+                    <!-- Screen sharing button -->
+                    {% if room.allow_screen_sharing %}
+                    <button type="button" onclick="toggleScreenSharing()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-desktop"></i>
+                    </button>
+                    {% endif %}
+
+                    <!-- Whiteboard button -->
+                    <button type="button" onclick="openCollaborativeWhiteboard()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-chalkboard"></i>
+                    </button>
+
+                    <!-- Polls button -->
+                    <button type="button" onclick="createPoll()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-poll"></i>
+                    </button>
+
+                    <!-- Group activities button -->
+                    <button type="button" onclick="openActivitiesMenu()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-gamepad"></i>
+                    </button>
+
+                    <!-- Send button -->
+                    <button type="submit" class="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right sidebar -->
+    <div id="rightSidebar" class="hidden lg:block w-64 bg-white border-l">
+        <!-- Tabs for different sidebar content -->
+        <div class="flex border-b">
+            <button onclick="switchTab('participants')" class="flex-1 py-2 px-4 text-center border-b-2 border-blue-500">
+                Participants
+            </button>
+            <button onclick="switchTab('tasks')" class="flex-1 py-2 px-4 text-center">
+                Tasks
+            </button>
+        </div>
+
+        <!-- Participants tab -->
+        <div id="participantsTab" class="p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-semibold">Participants</h3>
+                {% if user_role == 'admin' or user_role == 'moderator' %}
+                <button onclick="manageRoles()" class="text-sm text-blue-500 hover:text-blue-600">
+                    Manage Roles
+                </button>
+                {% endif %}
+            </div>
+
+            <div class="space-y-2">
+                {% for participant in room.participants.all %}
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <img src="{{ participant.profile.avatar.url }}" class="w-8 h-8 rounded-full">
+                        <span class="text-sm">{{ participant.username }}</span>
+                        {% if participant.role %}
+                        <span class="text-xs px-2 py-1 rounded-full bg-gray-100">{{ participant.role }}</span>
+                        {% endif %}
+                    </div>
+
+                    {% if user_role == 'admin' or user_role == 'moderator' %}
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div x-show="open" @click.away="open = false"
+                             class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg">
+                            <div class="py-1">
+                            <a href="#" onclick="sendPrivateMessage('{{ participant.id }}')"
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-comment"></i> Private Message
+                                </a>
+                                <a href="#" onclick="changeRole('{{ participant.id }}')"
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user-tag"></i> Change Role
+                                </a>
+                                <a href="#" onclick="moderateUser('{{ participant.id }}')"
+                                   class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                    <i class="fas fa-gavel"></i> Moderate
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Tasks tab -->
+        <div id="tasksTab" class="hidden p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-semibold">Shared Tasks</h3>
+                <button onclick="addNewTask()" class="text-sm text-blue-500 hover:text-blue-600">
+                    Add Task
+                </button>
+            </div>
+
+            <div id="taskList" class="space-y-2">
+                {% for task in room.tasks.all %}
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" {% if task.completed %}checked{% endif %}
+                           onchange="toggleTask('{{ task.id }}')">
+                    <span class="text-sm {% if task.completed %}line-through text-gray-500{% endif %}">
+                        {{ task.description }}
+                    </span>
+                    <span class="text-xs text-gray-500">{{ task.assigned_to.username }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Room settings modal -->
+<div id="roomSettingsModal" class="modal hidden">
+    <!-- Room settings form -->
+    <form id="roomSettingsForm" class="bg-white p-6 rounded-lg max-w-md mx-auto">
+        <h2 class="text-xl font-bold mb-4">Room Settings</h2>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Room Name</label>
+                <input type="text" name="name" value="{{ room.name }}" class="w-full form-input rounded">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-1">Room Description</label>
+                <textarea name="description" class="w-full form-textarea rounded">{{ room.description }}</textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-1">Categories</label>
+                <input type="text" name="categories" value="{{ room.categories|join:', ' }}"
+                       class="w-full form-input rounded" placeholder="Comma-separated tags">
+            </div>
+
+            <div class="space-y-2">
+                <label class="flex items-center">
+                    <input type="checkbox" name="is_private" {% if room.is_private %}checked{% endif %}
+                           class="form-checkbox">
+                    <span class="ml-2 text-sm">Private Room</span>
+                </label>
+
+                <label class="flex items-center">
+                    <input type="checkbox" name="allow_voice_calls" {% if room.allow_voice_calls %}checked{% endif %}
+                           class="form-checkbox">
+                    <span class="ml-2 text-sm">Allow Voice Calls</span>
+                </label>
+
+                <label class="flex items-center">
+                    <input type="checkbox" name="allow_video_calls" {% if room.allow_video_calls %}checked{% endif %}
+                           class="form-checkbox">
+                    <span class="ml-2 text-sm">Allow Video Calls</span>
+                </label>
+
+                <label class="flex items-center">
+                    <input type="checkbox" name="allow_screen_sharing" {% if room.allow_screen_sharing %}checked{% endif %}
+                           class="form-checkbox">
+                    <span class="ml-2 text-sm">Allow Screen Sharing</span>
+                </label>
+
+                <label class="flex items-center">
+                    <input type="checkbox" name="allow_file_sharing" {% if room.allow_file_sharing %}checked{% endif %}
+                           class="form-checkbox">
+                    <span class="ml-2 text-sm">Allow File Sharing</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-2">
+            <button type="button" onclick="closeModal('roomSettingsModal')"
+                    class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                Cancel
+            </button>
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    const roomId = '{{ room.id }}';
+const userId = '{{ request.user.id }}';
+const username = '{{ request.user.username }}';
+
+class ChatConnection {
+    constructor() {
+        this.socket = null;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.reconnectDelay = 5000;
+        this.isConnecting = false;
+        this.connect();
+    }
+
+    connect() {
+        if (this.isConnecting) return;
+        this.isConnecting = true;
+
+        this.socket = new WebSocket(
+            `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/chat/${roomId}/`
+        );
+
+        this.socket.onopen = this.handleOpen.bind(this);
+        this.socket.onclose = this.handleClose.bind(this);
+        this.socket.onmessage = this.handleMessage.bind(this);
+        this.socket.onerror = this.handleError.bind(this);
+    }
+
+    handleOpen(e) {
+        console.log('WebSocket connection established');
+        this.isConnecting = false;
+        this.reconnectAttempts = 0;
+
+        showNotification("Connected to chat room", 'success');
+
+        // Send join notification
+        this.send({
+            type: 'join',
+            username: username
+        });
+    }
+
+    handleClose(e) {
+        console.error('WebSocket connection closed');
+        this.isConnecting = false;
+
+        showNotification("Disconnected from chat room. Trying to reconnect...", 'error');
+
+        // Attempt to reconnect with exponential backoff
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+            const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
+            this.reconnectAttempts++;
+
+            console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts}) in ${delay/1000}s...`);
+
+            setTimeout(() => this.connect(), delay);
+        } else {
+            showNotification("Connection lost. Please refresh the page.", 'error');
+        }
+    }
+
+    handleMessage(e) {
+        try {
+            const data = JSON.parse(e.data);
+
+            switch(data.type) {
+                case 'chat':
+                    addMessage(data.message, data.user_id, data.username);
+                    break;
+                case 'join':
+                    showNotification(`${data.username} joined the room`, 'success');
+                    break;
+                case 'leave':
+                    showNotification(`${data.username} left the room`, 'info');
+                    break;
+                case 'typing':
+                    handleTypingIndicator(data.username, data.is_typing);
+                    break;
+                case 'error':
+                    showNotification(data.message, 'error');
+                    break;
+                default:
+                    console.log('Unknown message type:', data.type);
+            }
+        } catch (error) {
+            console.error('Error parsing message:', error);
+        }
+    }
+
+    handleError(error) {
+        console.error('WebSocket error:', error);
+        showNotification("Connection error occurred", 'error');
+    }
+
+    send(data) {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            try {
+                this.socket.send(JSON.stringify(data));
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showNotification("Failed to send message", 'error');
+            }
+        } else {
+            console.error('WebSocket is not connected');
+            showNotification('Connection lost. Please refresh the page.', 'error');
+        }
+    }
+
+    close() {
+        if (this.socket) {
+            this.socket.close();
+        }
+    }
+}
+
+// Typing indicator handling
+let typingTimeout;
+function handleTypingIndicator(username, isTyping) {
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (!typingIndicator) return;
+
+    if (isTyping && username !== '{{ request.user.username }}') {
+        typingIndicator.textContent = `${username} is typing...`;
+        typingIndicator.classList.remove('hidden');
+    } else {
+        typingIndicator.classList.add('hidden');
+    }
+}
+
+function showNotification(message, type) {
+    const backgroundColors = {
+        success: "#48BB78",
+        error: "#F56565",
+        info: "#6B46C1"
+    };
+
+    Toastify({
+        text: message,
+        duration: 3000,
+        backgroundColor: backgroundColors[type] || backgroundColors.info,
+        className: 'chat-notification',
+        position: 'top-right',
+        stopOnFocus: true
+    }).showToast();
+}
+
+function addMessage(message, senderId, senderUsername) {
+    const container = document.getElementById('messageContainer');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'flex flex-col mb-4';
+
+    const isOwn = senderId === userId;
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    messageDiv.innerHTML = `
+        <div class="message ${isOwn ? 'own' : 'other'} rounded-lg p-3 mb-1">
+            ${message}
+        </div>
+        <div class="text-xs text-gray-500 ${isOwn ? 'text-right' : ''}">
+            ${senderUsername} - ${timestamp}
+        </div>
+    `;
+
+    container.appendChild(messageDiv);
+    container.scrollTop = container.scrollHeight;
+}
+
+// Initialize chat connection
+const chatConnection = new ChatConnection();
+
+// Form Handler
+const chatForm = document.getElementById('chatForm');
+const messageInput = document.getElementById('messageInput');
+
+chatForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const message = messageInput.value.trim();
+
+    if (message) {
+        chatConnection.send({
+            type: 'chat',
+            message: message,
+            user_id: userId,
+            username: username
+        });
+        messageInput.value = '';
+    }
+});
+
+// Typing indicator
+let isTyping = false;
+messageInput.addEventListener('input', function() {
+    if (!isTyping) {
+        isTyping = true;
+        chatConnection.send({
+            type: 'typing',
+            is_typing: true,
+            username: username
+        });
+    }
+
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        isTyping = false;
+        chatConnection.send({
+            type: 'typing',
+            is_typing: false,
+            username: username
+        });
+    }, 1000);
+});
+
+// Handle page unload
+window.addEventListener('beforeunload', function() {
+    chatConnection.send({
+        type: 'leave',
+        username: username
+    });
+    chatConnection.close();
+});
+</script>
+{% endblock %}

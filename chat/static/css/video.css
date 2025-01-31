@@ -1,0 +1,71 @@
+/* video.css */
+.video-card {
+    transition: transform 0.2s;
+}
+
+.video-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Custom file input styling */
+.file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.file-input-wrapper input[type=file] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+}
+
+/* Video player custom styling */
+video {
+    max-height: 70vh;
+    background-color: black;
+}
+
+/* Drag and drop zone */
+.upload-zone {
+    border: 2px dashed #E9D8FD;
+    transition: all 0.3s ease;
+}
+
+.upload-zone.dragover {
+    border-color: #9F7AEA;
+    background-color: #FAF5FF;
+}
+
+/* Loading states */
+.upload-loading {
+    position: relative;
+}
+
+.upload-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Progress bar */
+.upload-progress {
+    height: 4px;
+    background-color: #E9D8FD;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.upload-progress-bar {
+    height: 100%;
+    background-color: #6B46C1;
+    transition: width 0.3s ease;
+}

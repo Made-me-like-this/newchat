@@ -1,0 +1,94 @@
+<!-- video_upload.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Upload Video{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-upload text-purple-600 mr-2"></i>Upload Video
+            </h1>
+
+            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Video Upload Area -->
+                <div class="border-2 border-dashed border-purple-200 rounded-lg p-6 text-center">
+                    <div id="video-preview" class="hidden mb-4">
+                        <video controls class="mx-auto max-h-64">
+                            <source src="" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+
+                    <div id="upload-prompt">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-purple-400 mb-2"></i>
+                        <p class="text-gray-600 mb-2">Drag and drop your video here or</p>
+                        <button type="button" onclick="document.getElementById('id_file').click()"
+                                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition">
+                            Browse Files
+                        </button>
+                        <p class="text-sm text-gray-500 mt-2">Maximum file size: 100MB</p>
+                    </div>
+
+                    {{ form.file|as_crispy_field }}
+                </div>
+
+                <!-- Title and Description -->
+                <div class="space-y-4">
+                    {{ form.title|as_crispy_field }}
+                    {{ form.description|as_crispy_field }}
+
+                    <!-- Thumbnail Upload -->
+                    <div class="mt-4">
+                        <label class="block text-gray-700 font-medium mb-2">Thumbnail</label>
+                        <div class="flex items-center space-x-4">
+                            <div id="thumbnail-preview" class="hidden w-32 h-32 bg-purple-100 rounded-lg overflow-hidden">
+                                <img src="" alt="Thumbnail preview" class="w-full h-full object-cover">
+                            </div>
+                            <button type="button" onclick="document.getElementById('id_thumbnail').click()"
+                                    class="bg-purple-100 hover:bg-purple-200 text-purple-700 px-4 py-2 rounded-lg transition">
+                                <i class="fas fa-image mr-2"></i>Choose Thumbnail
+                            </button>
+                        </div>
+                        {{ form.thumbnail|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end mt-6">
+                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow-md transition">
+                        <i class="fas fa-upload mr-2"></i>Upload Video
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('id_file').addEventListener('change', function(e) {
+    if (this.files && this.files[0]) {
+        const video = document.querySelector('#video-preview video');
+        video.src = URL.createObjectURL(this.files[0]);
+        document.getElementById('video-preview').classList.remove('hidden');
+    }
+});
+
+document.getElementById('id_thumbnail').addEventListener('change', function(e) {
+    if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.querySelector('#thumbnail-preview img');
+            preview.src = e.target.result;
+            document.getElementById('thumbnail-preview').classList.remove('hidden');
+        }
+        reader.readAsDataURL(this.files[0]);
+    }
+});
+</script>
+{% endblock %}
