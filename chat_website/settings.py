@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
+import dj_database_url
 
 load_dotenv()
 
@@ -74,6 +75,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+DATABASES['default'] = dj_database_url.parse('postgresql://postgres:daoQEDQjWqlnPzWGgHPMwRoEQRPSAzsZ@autorack.proxy.rlwy.net:33937/railway')
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
