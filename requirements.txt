@@ -12,3 +12,4 @@ crispy-tailwind
 django-cleanup
 python-dotenv
 pillow
+dj-database-url
