@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-f7)*3$qv4qp3tn#ae^he0x(l^pf_!^)ft4gf#@!p6x$6ul$+_x')
 
-DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'False'
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'talktome-lybb.onrender.com').split(',')
 
@@ -109,7 +109,10 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('redis://red-cudnvhqj1k6c73cqu8mg:6379')],
+            "hosts": [
+                (os.environ.get('REDIS_HOST', 'localhost'), 
+                 os.environ.get('REDIS_PORT', '6379'))
+            ],
         },
     },
 }
