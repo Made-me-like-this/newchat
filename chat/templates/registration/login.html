@@ -4,67 +4,111 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
-    <div class="bg-purple-600 text-white py-4 px-6">
-        <h2 class="text-2xl font-bold"><i class="fas fa-sign-in-alt"></i> Login</h2>
-    </div>
-    <div class="p-6">
-        <form method="post" class="space-y-4">
-            {% csrf_token %}
-            {{ form|crispy }}
-            <div class="flex items-center justify-between">
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </button>
-                <a href="{% url 'password_reset' %}" class="text-sm text-purple-600 hover:text-purple-800">
-                    Forgot Password?
+<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+
+    <!-- Login Form -->
+    <div class="max-w-md w-full bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-purple-600 text-white py-4 px-6 text-center">
+            <h2 class="text-2xl font-bold"><i class="fas fa-sign-in-alt"></i> Login</h2>
+        </div>
+        <div class="p-6">
+            <form method="post" id="loginForm" class="space-y-4">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="flex items-center justify-between">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <a href="{% url 'password_reset' %}" class="text-sm text-purple-600 hover:text-purple-800">
+                        Forgot Password?
+                    </a>
+                </div>
+            </form>
+            <div class="mt-4 text-center text-sm text-gray-600">
+                Don't have an account?
+                <a href="{% url 'register' %}" class="text-purple-600 hover:text-purple-800 font-medium">
+                    Register here
                 </a>
             </div>
-        </form>
-        <div class="mt-4 text-center text-sm text-gray-600">
-            Don't have an account?
-            <a href="{% url 'register' %}" class="text-purple-600 hover:text-purple-800 font-medium">
-                Register here
-            </a>
         </div>
     </div>
+
+    <!-- Test Credentials Section -->
+    <div class="max-w-md w-full bg-white rounded-lg shadow-md p-6 mt-6">
+        <h3 class="text-xl font-bold text-center mb-4">Test Credentials</h3>
+        <details class="text-center">
+            <summary class="cursor-pointer text-purple-600 font-semibold">Click to see test credentials</summary>
+            <p>Username: <span id="testUsername">test</span>
+                <button onclick="copyText('testUsername', this)" class="ml-2 text-purple-600 hover:text-purple-800">Copy</button>
+            </p>
+            <p>Password: <span id="testPassword">.#643+cL@Vw%884</span>
+                <button onclick="copyText('testPassword', this)" class="ml-2 text-purple-600 hover:text-purple-800">Copy</button>
+            </p>
+        </details>
+    </div>
+
+    <!-- Interested Section -->
+    <div class="text-center mt-6">
+        <h2>
+            <a href="https://t.me/ihatehumor" class="text-purple-600 hover:text-purple-800 text-xl font-semibold">
+                <u>Interested in this project? Tap here to chat directly</u>
+            </a>
+        </h2>
+    </div>
+
+    <!-- Toast Messages -->
+    {% if messages %}
+        <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-2">
+            {% for message in messages %}
+                <div class="toast-message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
 </div>
 
-<!-- Test Credentials Section -->
-<div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 mt-6">
-    <h3 class="text-xl font-bold text-center mb-4">Test Credentials</h3>
-    <details class="text-center">
-        <summary class="cursor-pointer text-purple-600 font-semibold">Click to see test credentials</summary>
-        <p>Username: test 
-            <button onclick="copyText('test')" class="ml-2 text-purple-600 hover:text-purple-800">Copy</button>
-        </p>
-        <p>Password: .#643+cL@Vw%884 
-            <button onclick="copyText('.#643+cL@Vw%884')" class="ml-2 text-purple-600 hover:text-purple-800">Copy</button>
-        </p>
-    </details>
-</div>
-
-<!-- Interested Section -->
-<div class="text-center mt-6">
-    <h2><a href="https://t.me/ihatehumor" class="text-purple-600 hover:text-purple-800 text-xl font-semibold"><u>Interested in this project? Tap here to chat directly</u></a></h2>
-</div>
-
-{% endblock %}
-
+<!-- JavaScript for Toast Messages & Copy Button -->
 <script>
-function copyText(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        const buttons = document.querySelectorAll('button');
-        buttons.forEach(button => {
-            if (button.innerHTML.includes(text)) {
-                button.innerHTML = 'Copied!';
-                setTimeout(() => {
-                    button.innerHTML = 'Copy';
-                }, 1500); // Reset after 1.5 seconds
-            }
-        });
-    }).catch(err => {
-        console.error("Failed to copy text", err);
+    // Show toast messages and remove them after 3 seconds
+    document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(() => {
+            document.querySelectorAll('.toast-message').forEach(toast => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 500);
+            });
+        }, 3000);
     });
-}
+
+    // Function to copy text and change button text temporarily
+    function copyText(elementId, button) {
+        const text = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            button.innerText = 'Copied!';
+            setTimeout(() => button.innerText = 'Copy', 1500);
+        }).catch(err => console.error("Failed to copy text", err));
+    }
 </script>
+
+<!-- Styling for Toast Messages -->
+<style>
+    .toast-message {
+        background-color: #4CAF50; /* Success color */
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        opacity: 1;
+        transition: opacity 0.5s ease-in-out;
+    }
+    .toast-message.error {
+        background-color: #F44336; /* Error color */
+    }
+    .toast-message.info {
+        background-color: #2196F3; /* Info color */
+    }
+    .fade-out {
+        opacity: 0;
+    }
+</style>
+{% endblock %}
