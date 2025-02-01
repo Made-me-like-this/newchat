@@ -120,6 +120,9 @@ CHANNEL_LAYERS = {
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://talktome-lybb.onrender.com",
+]
 # Rest Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
