@@ -26,17 +26,26 @@ class LoginView(AuthLoginView):
     template_name = 'registration/login.html'
     redirect_authenticated_user = True
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, "Login successful!")  # Success message for toast
+        return response
+
 class LogoutView(View):
     def get(self, request):
         logout(request)
+        messages.success(request, "You have been logged out.")  # Logout success message for toast
         return redirect('login')
-
 
 class RegisterView(CreateView):
     form_class = UserRegistrationForm
     template_name = 'registration/register.html'
     success_url = reverse_lazy('login')
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, "Registration successful! You can now log in.")  # Success message for toast
+        return response
 @login_required
 def home(request):
     rooms = Room.objects.filter(is_archived=False)
