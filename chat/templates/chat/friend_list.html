@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Friends{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h2 class="text-3xl font-bold text-purple-600 mb-6">Your Friends</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for user in users %}
+        <div class="bg-white p-4 rounded-lg shadow-lg">
+            <div class="flex items-center mb-4">
+                <img src="{{ user.userprofile.avatar.url }}" alt="{{ user.username }}" class="w-16 h-16 rounded-full">
+                <div class="ml-4">
+                    <p class="font-semibold text-lg">{{ user.username }}</p>
+                    <p class="text-gray-600">{{ user.userprofile.bio|default:"No bio available." }}</p>
+                </div>
+            </div>
+
+            {% if user in request.user.userprofile.friends.all %}
+                <button class="btn btn-primary bg-red-500 hover:bg-red-600 remove-friend" data-user-id="{{ user.id }}">Remove Friend</button>
+            {% else %}
+                {% if user != request.user %}
+                    <button class="btn btn-primary bg-purple-500 hover:bg-purple-600 add-friend" data-user-id="{{ user.id }}">Add Friend</button>
+                {% endif %}
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.add-friend').forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+
+            fetch(`/friend-request/send/${userId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    this.innerHTML = 'Friend Request Sent';
+                    this.disabled = true;
+                } else if (data.status === 'already_pending') {
+                    alert('Friend request already pending.');
+                }
+            });
+        });
+    });
+
+    document.querySelectorAll('.remove-friend').forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+
+            fetch(`/friend-request/accept/${userId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    this.innerHTML = 'Friend Removed';
+                    this.disabled = true;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

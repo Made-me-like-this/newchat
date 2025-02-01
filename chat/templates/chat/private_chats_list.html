@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md">
+    <div class="bg-purple-600 text-white p-4">
+        <h1 class="text-xl font-bold">Private Messages</h1>
+    </div>
+
+    <div class="divide-y">
+        {% for chat in chats %}
+        {% with other_user=chat.get_other_participant|user %}
+        <a href="{% url 'private_chat_room' chat.id %}" class="flex items-center p-4 hover:bg-gray-50">
+            <img src="{{ other_user.userprofile.avatar.url }}" alt="{{ other_user.username }}"
+                 class="w-12 h-12 rounded-full object-cover">
+            <div class="ml-4 flex-grow">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-semibold">{{ other_user.username }}</h3>
+                    <span class="text-sm text-gray-500">
+                        {{ chat.last_message_at|timesince }} ago
+                    </span>
+                </div>
+                {% with last_message=chat.messages.last %}
+                {% if last_message %}
+                <p class="text-sm text-gray-600 truncate">
+                    {% if last_message.sender == request.user %}
+                    You: {{ last_message.content }}
+                    {% else %}
+                    {{ last_message.content }}
+                    {% endif %}
+                </p>
+                {% endif %}
+                {% endwith %}
+            </div>
+            <!-- Unread messages indicator -->
+            {% with unread_count=chat.messages.filter.is_read=False|exclude:sender=request.user|count %}
+            {% if unread_count > 0 %}
+            <div class="ml-2 bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                {{ unread_count }}
+            </div>
+            {% endif %}
+            {% endwith %}
+        </a>
+        {% endwith %}
+        {% empty %}
+        <div class="p-8 text-center text-gray-500">
+            <p>No private messages yet</p>
+            <button onclick="showUserSearch()" class="btn-primary mt-4">
+                Start New Conversation
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- User search modal -->
+<div id="userSearchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full">
+        <h2 class="text-xl font-bold mb-4">Start New Conversation</h2>
+        <input type="text" id="userSearchInput"
+               class="w-full form-input mb-4"
+               placeholder="Search users...">
+        <div id="userSearchResults" class="max-h-64 overflow-y-auto">
+            <!-- Results will be populated here -->
+        </div>
+    </div>
+</div>
+{% endblock %}
