@@ -6,7 +6,6 @@
 {% block content %}
 <div class="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
     <div class="bg-purple-600 text-white py-4 px-6">
-
         <h2 class="text-2xl font-bold"><i class="fas fa-sign-in-alt"></i> Login</h2>
     </div>
     <div class="p-6">
@@ -30,7 +29,42 @@
         </div>
     </div>
 </div>
-    <div>
-                        <h2> <a href="https://t.me/ihatehumor"><u>Interested in this project? Tap here to chat directly</u></a></h2>
-                    </div>
+
+<!-- Test Credentials Section -->
+<div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 mt-6">
+    <h3 class="text-xl font-bold text-center mb-4">Test Credentials</h3>
+    <details class="text-center">
+        <summary class="cursor-pointer text-purple-600 font-semibold">Click to see test credentials</summary>
+        <p>Username: test 
+            <button onclick="copyText('test')" class="ml-2 text-purple-600 hover:text-purple-800">Copy</button>
+        </p>
+        <p>Password: .#643+cL@Vw%884 
+            <button onclick="copyText('.#643+cL@Vw%884')" class="ml-2 text-purple-600 hover:text-purple-800">Copy</button>
+        </p>
+    </details>
+</div>
+
+<!-- Interested Section -->
+<div class="text-center mt-6">
+    <h2><a href="https://t.me/ihatehumor" class="text-purple-600 hover:text-purple-800 text-xl font-semibold"><u>Interested in this project? Tap here to chat directly</u></a></h2>
+</div>
+
 {% endblock %}
+
+<script>
+function copyText(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(button => {
+            if (button.innerHTML.includes(text)) {
+                button.innerHTML = 'Copied!';
+                setTimeout(() => {
+                    button.innerHTML = 'Copy';
+                }, 1500); // Reset after 1.5 seconds
+            }
+        });
+    }).catch(err => {
+        console.error("Failed to copy text", err);
+    });
+}
+</script>
