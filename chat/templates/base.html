@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="{% static 'css/video.css' %}">
     <link rel="stylesheet" href="{% static 'css/friends.css' %}">
 
-
     <!-- Toastify JS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.js"></script>
@@ -42,21 +41,86 @@
             @apply bg-purple-800 text-white;
         }
 
-        /* Mobile responsiveness */
-        @media (min-width: 768px) {
-            #mobile-menu {
-                display: none; /* Hide mobile menu by default */
-            }
-            #mobile-menu.open {
-                display: block; /* Show mobile menu when toggled */
-            }
-        }
+        /* Mobile menu transitions */
+        /* Mobile menu hidden by default */
+#mobile-menu {
+    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: var(--primary-color);
+    z-index: 100; /* Ensures it's on top */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile menu visible when open */
+#mobile-menu.open {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Mobile menu items styling */
+.mobile-nav-item {
+    display: block;
+    padding: 12px 16px;
+    color: white;
+    text-decoration: none;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.mobile-nav-item:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Hamburger button styling */
+.hamburger-icon {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 24px;
+    cursor: pointer;
+    position: relative;
+}
+
+.hamburger-icon span {
+    display: block;
+    height: 3px;
+    width: 100%;
+    background: white;
+    border-radius: 2px;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Animation for hamburger menu when active */
+.hamburger-icon.active span:first-child {
+    transform: translateY(9px) rotate(45deg);
+}
+
+.hamburger-icon.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-icon.active span:last-child {
+    transform: translateY(-9px) rotate(-45deg);
+}
+
+/* Ensure no parent is restricting visibility */
+body, nav {
+    overflow: visible !important;
+}
+
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-100 min-h-screen">
     <!-- Navigation -->
-    <nav class="bg-purple-600">
+    <nav class="bg-purple-600 relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center">
@@ -70,10 +134,10 @@
                         <div class="hidden md:block">
                             <div class="ml-10 flex items-baseline space-x-4">
                                 <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
-                                    <i class="fas fa-home"></i> Home
+                                    <i class="fas fa-home"></i> Chatrooms
                                 </a>
                                 <a href="{% url 'friend_list' %}" class="nav-link {% if 'friend' in request.path %}active{% endif %}">
-                                    <i class="fas fa-user-friends"></i> Friends
+                                    <i class="fas fa-user-friends"></i> Chats
                                 </a>
                                 <a href="{% url 'video_list' %}" class="nav-link {% if 'video' in request.path %}active{% endif %}">
                                     <i class="fas fa-video"></i> Videos
@@ -83,11 +147,12 @@
                     {% endif %}
                 </div>
 
-
-                <div class="flex items-center md:hidden">
-                    <!-- Hamburger button -->
-                    <button id="hamburger-btn" class="text-white focus:outline-none">
-                        <i class="fas fa-bars"></i>
+                <!-- Hamburger Menu Button -->
+                <div class="md:hidden">
+                    <button id="hamburger-btn" class="hamburger-icon" aria-label="Menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
                     </button>
                 </div>
 
@@ -113,20 +178,32 @@
             </div>
         </div>
 
-
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="md:hidden hidden bg-purple-600">
-            <div class="px-4 py-2">
-                <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
-                    <i class="fas fa-home"></i> Home
+        <div id="mobile-menu" class="md:hidden bg-purple-600 shadow-lg">
+            {% if user.is_authenticated %}
+                <a href="{% url 'home' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'home' %}bg-purple-700{% endif %}">
+                    <i class="fas fa-home"></i> Chatrooms
                 </a>
-                <a href="{% url 'friend_list' %}" class="nav-link {% if 'friend' in request.path %}active{% endif %}">
-                    <i class="fas fa-user-friends"></i> Friends
+                <a href="{% url 'friend_list' %}" class="mobile-nav-item {% if 'friend' in request.path %}bg-purple-700{% endif %}">
+                    <i class="fas fa-user-friends"></i> Chats
                 </a>
-                <a href="{% url 'video_list' %}" class="nav-link {% if 'video' in request.path %}active{% endif %}">
+                <a href="{% url 'video_list' %}" class="mobile-nav-item {% if 'video' in request.path %}bg-purple-700{% endif %}">
                     <i class="fas fa-video"></i> Videos
                 </a>
-            </div>
+                <a href="{% url 'profile' %}" class="mobile-nav-item">
+                    <i class="fas fa-user-circle"></i> {{ user.username }}
+                </a>
+                <a href="{% url 'logout' %}" class="mobile-nav-item">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="mobile-nav-item">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+                <a href="{% url 'register' %}" class="mobile-nav-item">
+                    <i class="fas fa-user-plus"></i> Register
+                </a>
+            {% endif %}
         </div>
     </nav>
 
@@ -148,14 +225,51 @@
                 backgroundColor: "{% if message.tags == 'success' %}#48BB78{% elif message.tags == 'error' %}#F56565{% else %}#6B46C1{% endif %}",
             }).showToast();
         {% endfor %}
-
-        // Mobile Menu Toggle
-        document.getElementById('hamburger-btn').addEventListener('click', function() {
-            const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenu.classList.toggle('open');
-        });
     </script>
     {% endif %}
+
+    <!-- Mobile Menu JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    hamburgerBtn.addEventListener('click', function() {
+        this.classList.toggle('active');
+        mobileMenu.classList.toggle('open');
+
+        // Ensure display is toggled properly
+        if (mobileMenu.classList.contains('open')) {
+            mobileMenu.style.display = "block";
+        } else {
+            setTimeout(() => {
+                mobileMenu.style.display = "none";
+            }, 300); // Matches the CSS transition duration
+        }
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!hamburgerBtn.contains(event.target) && !mobileMenu.contains(event.target)) {
+            hamburgerBtn.classList.remove('active');
+            mobileMenu.classList.remove('open');
+            setTimeout(() => {
+                mobileMenu.style.display = "none";
+            }, 300);
+        }
+    });
+
+    // Close menu when window resizes to desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 768) {
+            hamburgerBtn.classList.remove('active');
+            mobileMenu.classList.remove('open');
+            mobileMenu.style.display = "none";
+        }
+    });
+});
+
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>
