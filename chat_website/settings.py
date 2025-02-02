@@ -77,7 +77,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-DATABASES['default'] = dj_database_url.parse('postgresql://postgres:daoQEDQjWqlnPzWGgHPMwRoEQRPSAzsZ@autorack.proxy.rlwy.net:33937/railway')
+DATABASES['default'] = dj_database_url.parse('postgresql://keepinhere_user:6Gad8Jib8ZF6NRdH9dCTmXaTishwSzaU@dpg-cueb8htsvqrc73d89070-a.oregon-postgres.render.com/keepinhere')
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -112,7 +112,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": ['redis://default:DGUjZrzLHXrXBZDfJPWYxKjPiisAHoGe@viaduct.proxy.rlwy.net:55480'],
+            "hosts": ['rediss://red-cued6i52ng1s7387poeg:CJ1ohzTVZtDbjwdypKabt212FSwL6600@oregon-redis.render.com:6379'],
         },
     },
 }
