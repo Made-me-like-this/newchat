@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.text import slugify
 import uuid
 
 class Room(models.Model):
@@ -12,6 +13,7 @@ class Room(models.Model):
     participants = models.ManyToManyField(User, related_name='joined_rooms')
     updated_at = models.DateTimeField(auto_now=True)
 
+    slug = models.SlugField(unique=True, blank=True)
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
