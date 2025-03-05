@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
-import dj_database_url
+# import dj_database_url
 
 load_dotenv()
 
@@ -77,7 +77,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-DATABASES['default'] = dj_database_url.parse('postgresql://keepinhere_user:6Gad8Jib8ZF6NRdH9dCTmXaTishwSzaU@dpg-cueb8htsvqrc73d89070-a.oregon-postgres.render.com/keepinhere')
+# DATABASES['default'] = dj_database_url.parse('postgresql://keepinhere_user:6Gad8Jib8ZF6NRdH9dCTmXaTishwSzaU@dpg-cueb8htsvqrc73d89070-a.oregon-postgres.render.com/keepinhere')
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
